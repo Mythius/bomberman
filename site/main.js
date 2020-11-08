@@ -57,10 +57,16 @@ socket.on('setPlayers',data=>{
 		let item = create('li',player);
 		obj('#players').appendChild(item);
 	}
-	obj('#startgame').disasabled = data.host == name;
+	console.log('Data',data);
+	obj('#startgame').disabled = data.host != NAME;
 });
 
 socket.on('startgame',data=>{
 	hide(obj('#gamelobby'));
 	show(obj('#game'));
+	setup();
+});
+
+obj('#startgame').on('click',e=>{
+	socket.emit('trystart');
 });

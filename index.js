@@ -84,21 +84,28 @@ class Game{
             this.players.splice(ix,1);
         }
         if(this.players.length == 0){
-            Game.removeGame(this);
+            Game.removeGame(this,true);
+        } else if(this.host == player){
+            this.host = this.players[0];
         }
+        this.update();
     }
     addPlayer(player){
         if(this.players.lenghth == 4) return false;
         this.players.push(player);
+        this.update();
+        return true;
+    }
+    update(){
         let playerData = this.players.map(player=>player.name);
         for(let player of this.players){
-            player.emit('setPlayers',{players:PlayerData,host:this.host.name});
+            player.emit('setPlayers',{players:playerData,host:this.host.name});
         }
     }
 }
 Game.all = [];
 Game.globalid = 0;
-Game.removeGame = (game,kick=false) => {
+Game.removeGame = (game,kick=true) => {
     if(kick){
         for(let player of game.players){
             player.game = null;
@@ -181,6 +188,18 @@ io.on('connection',socket=>{
             socket.emit('get_kicked','GameGone');
             return;
         }
-        room[0].addPlayer(c);
+        if(!room[0].addPlayer(c)){
+            socket.emit('get_kicked','GameGone');
+            return;
+        }
+        c.game = room[0];
+    });
+    socket.on('trystart',()=>{
+        if(c.game){
+            if(c.game.host == c){
+                console.log(c.name+' has started the game');
+                c.game.start();
+            }
+        }
     });
 });
