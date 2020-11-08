@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bomberman</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="helpers.js"></script>
+    <script src="grid.js"></script>
+    <script src="input.js"></script>
+    <script src="sprite.js"></script>
+</head>
+
+<body>
+    <div id=startmenu>
+    	<pad></pad>
+        <input type="text" placeholder="username">
+        <br><br>	
+        <button>Join</button>
+    </div>
+    <div id=lobby>
+    	<h4>Join or create a Game</h4>
+    	<button id="creategame">Create Game</button>
+    	<h5>Join a game</h5>
+    	<ul id=games>
+    	</ul>
+    </div>
+    <div id="game">
+    	<canvas width=700 height=500></canvas>
+    </div>
+    <div id="gamelobby">
+        <h5>People in this game</h5>
+        <ul id="players"></ul>
+        <button id=startgame>Start Game</button>
+    </div>
+    <script src="main.js"></script>
+</body>
+
+</html>
