@@ -64,7 +64,7 @@ socket.on('setPlayers',data=>{
 socket.on('startgame',data=>{
 	hide(obj('#gamelobby'));
 	show(obj('#game'));
-	setup();
+	setup(data);
 });
 
 obj('#startgame').on('click',e=>{

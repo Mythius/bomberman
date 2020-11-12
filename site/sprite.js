@@ -21,6 +21,9 @@ class Vector{
 		return new Vector(this.x*m,this.y*m);
 	}
 	add(x,y){
+		if(x instanceof Vector){
+			return new Vector(this.x+x.x,this.y+x.y);
+		}
 		return new Vector(this.x+x,this.y+y);
 	}
 	clone(){
@@ -332,7 +335,7 @@ class Sprite extends Hitbox{
 		ctx.translate(pos.x,pos.y);
 		ctx.rotate(Vector.rad(this.dir));
 		ctx.scale(this.transformX,1);
-		ctx.drawImage(this.element,-this.w/2,-this.h/2);
+		ctx.drawImage(this.element,-this.element.width/2,-this.element.height/2);
 		ctx.restore();
 		if(Hitbox.show) this.DRAW();
 	}

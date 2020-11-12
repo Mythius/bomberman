@@ -19,10 +19,13 @@ var file = {
 	}
 }
 
+const random=(min,max)=>Math.floor(min+Math.random()*(max-min+1));
+
 class Tile{
     constructor(x,y,grid) {
         this.x = x;
         this.y = y;
+        this.type = 0;
         this.color = '#222';
         this.grid = grid;
     }
@@ -69,13 +72,67 @@ class Game{
 		this.grid = new Grid(21,17);
         this.waiting = true;
         this.id = Game.globalid++;
+        this.type = 0;
+        this.generateMap();
         Game.all.push(this);
         this.addPlayer(host);
 	}
     start(){
         this.waiting = false;
+        let tiles = this.grid.tiles.flat().map(tile=>tile.type);
+        const positions = [{x:1,y:1},{x:1,y:15},{x:19,y:15},{x:19,y:1}];
+        let i = 0;
         for(let player of this.players){
-            player.emit('startgame');
+            let startpos = positions[i];
+            player.emit('startgame',{tiles,startpos});
+            i++;
+        }
+    }
+    generateMap(){
+        this.generateBlock(1);
+        this.generateBlock(2,random(15,40));
+        if(random(1,2) == 1) this.generateBlock(3,random(5,10));
+
+        this.grid.getTileAt(1,1).type = 0;
+        this.grid.getTileAt(1,2).type = 0;
+        this.grid.getTileAt(2,1).type = 0;
+
+        this.grid.getTileAt(1,15).type = 0;
+        this.grid.getTileAt(1,14).type = 0;
+        this.grid.getTileAt(2,15).type = 0;
+
+        this.grid.getTileAt(19,15).type = 0;
+        this.grid.getTileAt(19,14).type = 0;
+        this.grid.getTileAt(18,15).type = 0;
+
+        this.grid.getTileAt(19,1).type = 0;
+        this.grid.getTileAt(18,1).type = 0;
+        this.grid.getTileAt(19,2).type = 0;
+
+        this.grid.forEach(tile=>{
+            if(tile.x == 0 || tile.y == this.grid.width-1){
+                tile.type = 6;
+            }
+            if(tile.y == 0 || tile.y == this.grid.height-1){
+                tile.type = 6;
+            }
+        });
+    }
+    generateBlock(type,amount=random(5,15)){
+        let r = amount;
+        const THIS = this;
+        while(r--) generateSingle();
+        function generateSingle(){
+            let ptx = random(0,10-1);
+            let pty = random(0,8-1);
+            if(THIS.grid.getTileAt(10-ptx,8-pty).type !== 0){
+                generateSingle();
+                return;
+            }
+            THIS.grid.getTileAt(10-ptx,8-pty).type = type;
+            THIS.grid.getTileAt(10+ptx,8-pty).type = type;
+            THIS.grid.getTileAt(10-ptx,8+pty).type = type;
+            THIS.grid.getTileAt(10+ptx,8+pty).type = type;
         }
     }
     removePlayer(player){
@@ -126,7 +183,6 @@ class client{
 	constructor(socket){
 		this.socket = socket;
 		this.name = null;
-		this.tiles = [];
 		client.all.push(this);
 		socket.on('disconnect',e=>{
 			let index = client.all.indexOf(this);
