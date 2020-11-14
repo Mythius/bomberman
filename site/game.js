@@ -50,6 +50,7 @@ function setup(data){
 	canvas.width = grid.width*grid.scale;
 	canvas.height = grid.height*grid.scale;
 	player = new Sprite('assets/player/00.png');
+	// audio.play('assets/battle.mp3',true);
 	player.addAnimation('assets/player/player.anims').then(e=>{
 		player.setOffset = new Vector(0,player.h/4);
 	})
@@ -166,49 +167,64 @@ async function addBombAt(tile){
 	let wait = bomb.animation.play('drop').then(e=>{
 		bomb.name = 'die';
 		if(e == 1){
+			tile.sprite.animation.play('center').then(e=>{
+				tile.sprite = null;
+				tile.type = 0;
+			});
 			addRecursiveBombs(tile);
-			tile.sprite.animation.play('center');
-		}
+		} else console.log()
 	});
 	await wait;
 }
 
 function addRecursiveBombs(tile,range=6){
+
 	audio.play('assets/bomb/explode0.wav');
-	tile.sprite.animation.stop();
-	tile.sprite = null;
-	tile.type = 0;
+
+	// If bomb is being triggered by another bomb, stop current animation and play center explosion
+	if(tile.sprite.animation.name == 'drop'){
+		tile.sprite.name = 'die';
+		tile.sprite.animation.stop(0);
+		tile.sprite.animation.play('center').then(e=>{
+			tile.sprite = null;
+			tile.type = 0;
+		});
+	}
+
+	// Iterate through all 4 directions from center bomb
 	const directions = [{x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}];
 	const dirnames = ['bottom','top','right','left'];
 	for(let i=0;i<dirnames.length;i++){
 		let direction = directions[i];
 		let dirname = dirnames[i];
 		let count = 1;
+
+		// 
 		while(count < range){
 			let current_tile = grid.getTileAt(tile.x+direction.x*count,tile.y+direction.y*count);
-			if(current_tile.type == 1 || current_tile.type == 6){
+
+			if(current_tile.type == 1 || current_tile.type == 6){ // If Tile Adjacent to Bomb is a rock or a edge then do not explode in that direction
 				break;
-			} else if(current_tile.type == 2){
+			} else if(current_tile.type == 2){ // If Tile Adjacent to bomb is a bush, play bushfire animation and do not explode in that direction
 				current_tile.sprite.animation.play('fire').then(e=>{
 					current_tile.sprite = null;
 					current_tile.type = 0;
 				});
 				break;
-			} else if(current_tile.type == 4){
-				if(current_tile.sprite.animation.name=='center') break;
-				// current_tile.sprite.animation.stop();
-				// current_tile.sprite.animation.play('center');
-				// addRecursiveBombs(current_tile);
+			} else if(current_tile.type == 4){ // If Tile Adejacent to bomb is a bomb (that is in drop animation) it will explode in every direction from that new bomb
+				if(!current_tile.sprite.animation) break;
+				if(current_tile.sprite.animation.name!='drop') break;
+				addRecursiveBombs(current_tile);
 				break;
 			} else {
 				let ni = count + 1;
 				console.log(ni);
 				let next_tile = grid.getTileAt(tile.x+direction.x*ni,tile.y+direction.y*ni);
-				if(!next_tile){
+				if(!next_tile){ // If The square two tiles from the bomb does not exist do not explode in that direction
 					count++;
 					break;
 				}
-				if(next_tile.type == 1 || next_tile.type == 6 || (count+2) > range){
+				if(next_tile.type == 1 || next_tile.type == 6 || (count+2) > range){ // If next adjacent tile is stone or edge or out of range play cap animation
 					let flash = new Sprite('assets/bomb/00.png');
 					current_tile.type = 4;
 					flash.position = current_tile.getCenter();
@@ -220,7 +236,7 @@ function addRecursiveBombs(tile,range=6){
 						});
 					});
 					break;
-				} else {
+				} else { // If next adjacent tile is grass or tire that play directional animation
 					let flash = new Sprite('assets/bomb/00.png');
 					flash.position = current_tile.getCenter();
 					current_tile.sprite = flash;

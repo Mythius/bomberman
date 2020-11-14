@@ -176,7 +176,7 @@ class Animation{
 			return new Promise(r=>r(0));
 		}
 	}
-	stop(){
+	stop(normal_finish=1){
 		let arr = this.#frLists[this.#animID];
 		if(arr){
 			this.element.src = this.frames[arr[arr.length-1]].src;
@@ -184,7 +184,7 @@ class Animation{
 		this.playing = false;
 		this.isLoop = false;
 		this.name = "";
-		this.end(1);
+		this.end(normal_finish);
 	}
 }
 class Hitbox{
